@@ -292,3 +292,15 @@ VALUES
     "address": "NA"
 }', 
 1);
+
+
+--SP
+
+CREATE OR ALTER PROCEDURE GetStoresByOwnerId
+    @owner_id INT
+AS
+BEGIN
+    SELECT *
+    FROM STORES
+    WHERE CD_OWNER_ID = @owner_id;
+END;
