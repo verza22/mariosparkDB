@@ -344,3 +344,39 @@ BEGIN
 END
 
 GO
+
+CREATE OR ALTER PROCEDURE GetProducts
+    @store_id INT,
+    @category_id INT
+AS
+BEGIN
+
+    IF @category_id > 0
+    BEGIN
+        SELECT KY_PRODUCT_ID,
+               TX_NAME,
+               TX_DESCRIPTION,
+               DB_PRICE,
+               CD_CATEGORY_ID,
+               TX_IMAGE,
+               CD_STORE_ID
+        FROM PRODUCTS
+        WHERE CD_STORE_ID = @store_id
+          AND CD_CATEGORY_ID = @category_id;
+    END
+    ELSE
+    BEGIN
+        
+        SELECT KY_PRODUCT_ID,
+               TX_NAME,
+               TX_DESCRIPTION,
+               DB_PRICE,
+               CD_CATEGORY_ID,
+               TX_IMAGE,
+               CD_STORE_ID
+        FROM PRODUCTS
+        WHERE CD_STORE_ID = @store_id;
+    END
+END;
+
+GO
