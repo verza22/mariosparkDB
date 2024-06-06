@@ -318,8 +318,29 @@ BEGIN
     ,[TX_USERNAME]
     ,[TX_NAME]
     ,[CD_USER_TYPE_ID]
-    ,ISNULL([CD_OWNER_ID], 0) AS [CD_OWNER_ID]
+    ,ISNULL([CD_OWNER_ID], 0) AS [CD_OWNER_ID],
+	ISNULL((SELECT TOP 1 [KY_STORE_ID] FROM [STORES] WHERE [CD_OWNER_ID] = USERS.[KY_USER_ID]),0) as DEFAULT_STORE_ID
 	FROM USERS 
 	WHERE TX_USERNAME = @UserName 
 	AND TX_PASSWORD = @Password
 END;
+
+GO
+
+CREATE OR ALTER PROCEDURE GetCategoriesByStoreId
+    @store_id INT
+AS
+BEGIN
+    -- Seleccionar categorías que pertenecen a la tienda especificada
+    SELECT 
+        KY_CATEGORY_ID,
+        TX_NAME,
+        TX_IMAGE,
+        CD_STORE_ID
+    FROM 
+        CATEGORIES
+    WHERE 
+        CD_STORE_ID = @store_id;
+END
+
+GO
