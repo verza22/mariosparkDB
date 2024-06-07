@@ -380,3 +380,22 @@ BEGIN
 END;
 
 GO
+
+CREATE OR ALTER PROCEDURE GetCustomers
+    @store_id INT
+AS
+BEGIN
+    SELECT 
+        KY_CUSTOMER_ID,
+        TX_NAME,
+        TX_DNI,
+        TX_EMAIL,
+        TX_PHONE,
+        TX_ADDRESS,
+        CD_STORE_ID
+    FROM 
+        CUSTOMERS
+    WHERE 
+        CD_STORE_ID = @store_id;
+END;
+GO
