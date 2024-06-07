@@ -20,7 +20,6 @@ CREATE TABLE USERS (
     TX_NAME NVARCHAR(50),
     TX_PASSWORD NVARCHAR(255),
     CD_USER_TYPE_ID INT NOT NULL,
-    CD_OWNER_ID INT NULL,
     FOREIGN KEY (CD_USER_TYPE_ID) REFERENCES USER_TYPES(KY_USER_TYPE_ID)
 );
 GO
@@ -35,13 +34,13 @@ VALUES
 GO
 
 -- Insertar datos en la tabla "USERS" sin especificar el 'KY_USER_ID' y sin el campo 'CD_USER_TYPE_ID'
-INSERT INTO USERS (TX_USERNAME, TX_NAME, TX_PASSWORD, CD_USER_TYPE_ID, CD_OWNER_ID)
+INSERT INTO USERS (TX_USERNAME, TX_NAME, TX_PASSWORD, CD_USER_TYPE_ID)
 VALUES 
-('admin', 'administrador', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 1, NULL),
-('caja1', 'Jamil Caja', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 2, 1),
-('mesero1', 'Mesero 1', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 3, 1),
-('mesero2', 'Mesero 2', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 3, 1),
-('chef1', 'Chef Tito', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 4, 1);
+('admin', 'administrador', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 1),
+('caja1', 'Jamil Caja', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 2),
+('mesero1', 'Mesero 1', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 3),
+('mesero2', 'Mesero 2', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 3),
+('chef1', 'Chef Tito', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', 4);
 GO
 
 -- Crear una tabla llamada "STORES"
@@ -69,7 +68,26 @@ VALUES
 ('Marios Park', 'Via Rioverde', 1);
 GO
 
--- Insertar datos en la tabla "CATEGORIES" sin especificar el 'KY_CATEGORY_ID'
+CREATE TABLE USER_STORES (
+    CD_USER_ID INT,
+    CD_STORE_ID INT,
+    FOREIGN KEY (CD_USER_ID) REFERENCES USERS(KY_USER_ID),
+    FOREIGN KEY (CD_STORE_ID) REFERENCES STORES(KY_STORE_ID)
+);
+
+GO
+
+INSERT INTO USER_STORES (CD_USER_ID, CD_STORE_ID)
+VALUES 
+    (1, 1),
+    (2, 1),
+    (3, 1),
+    (4, 1),
+    (5, 1);
+
+GO
+
+
 INSERT INTO CATEGORIES (TX_NAME, TX_IMAGE, CD_STORE_ID)
 VALUES 
 ('Pizza 1', 'https://via.placeholder.com/50', 1),
@@ -318,8 +336,7 @@ BEGIN
     ,[TX_USERNAME]
     ,[TX_NAME]
     ,[CD_USER_TYPE_ID]
-    ,ISNULL([CD_OWNER_ID], 0) AS [CD_OWNER_ID],
-	ISNULL((SELECT TOP 1 [KY_STORE_ID] FROM [STORES] WHERE [CD_OWNER_ID] = USERS.[KY_USER_ID]),0) as DEFAULT_STORE_ID
+	,ISNULL((SELECT TOP 1 [KY_STORE_ID] FROM [STORES] WHERE [CD_OWNER_ID] = USERS.[KY_USER_ID]),0) as DEFAULT_STORE_ID
 	FROM USERS 
 	WHERE TX_USERNAME = @UserName 
 	AND TX_PASSWORD = @Password
@@ -331,7 +348,6 @@ CREATE OR ALTER PROCEDURE GetCategoriesByStoreId
     @store_id INT
 AS
 BEGIN
-    -- Seleccionar categorías que pertenecen a la tienda especificada
     SELECT 
         KY_CATEGORY_ID,
         TX_NAME,
@@ -398,4 +414,22 @@ BEGIN
     WHERE 
         CD_STORE_ID = @store_id;
 END;
+GO
+
+CREATE OR ALTER PROCEDURE GetUsers
+    @store_id INT
+AS
+BEGIN
+
+    SELECT
+        KY_USER_ID,
+        TX_USERNAME,
+        TX_NAME,
+        CD_USER_TYPE_ID
+    FROM
+        USERS
+    WHERE
+        KY_USER_ID IN (SELECT CD_USER_ID FROM USER_STORES WHERE CD_STORE_ID = @store_id);
+END;
+
 GO
