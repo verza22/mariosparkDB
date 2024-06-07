@@ -433,3 +433,69 @@ BEGIN
 END;
 
 GO
+
+CREATE OR ALTER PROCEDURE GetOrders
+    @store_id INT
+AS
+BEGIN
+    SELECT 
+        KY_ORDER_ID,
+        CD_CASHIER_ID,
+        CD_TABLE_NUMBER,
+        CD_WAITER_ID,
+        CD_CHEF_ID,
+        CD_TOTAL,
+        DT_DATE,
+        TX_PAYMENT_METHOD,
+        CD_ORDER_STATUS,
+        CD_STORE_ID,
+        JS_CUSTOMER,
+        JS_PRODUCTS
+    FROM 
+        ORDERS
+    WHERE 
+        CD_STORE_ID = @store_id;
+END;
+
+GO
+
+CREATE OR ALTER PROCEDURE GetHotelRooms
+    @store_id INT
+AS
+BEGIN
+    SELECT 
+        KY_ROOM_ID,
+        TX_ROOM_NAME,
+        INT_CAPACITY,
+        TX_ROOM_TYPE,
+        CD_STORE_ID
+    FROM 
+        HOTEL_ROOMS
+    WHERE 
+        CD_STORE_ID = @store_id;
+END;
+
+GO
+
+CREATE OR ALTER PROCEDURE GetHotelOrders
+    @store_id INT
+AS
+BEGIN
+    SELECT 
+        KY_ORDER_ID,
+        CD_USER_ID,
+        DEC_TOTAL,
+        DT_DATE_IN,
+        DT_DATE_OUT,
+        TX_PAYMENT_METHOD,
+        INT_PEOPLE,
+        JS_ROOM,
+        JS_CUSTOMER,
+        CD_STORE_ID
+    FROM 
+        HOTEL_ORDERS
+    WHERE 
+        CD_STORE_ID = @store_id;
+END;
+
+GO
