@@ -533,3 +533,71 @@ BEGIN
     WHERE CD_STORE_ID = @store_id;
 END
 GO
+
+CREATE OR ALTER PROCEDURE RemoveCategory
+    @categoryId INT
+AS
+BEGIN
+    DELETE FROM CATEGORIES
+    WHERE KY_CATEGORY_ID = @categoryId;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN 0;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AddOrUpdateCategory
+    @categoryId INT,
+    @name NVARCHAR(50),
+    @image NVARCHAR(255),
+    @storeID INT
+AS
+BEGIN
+    IF @categoryId > 0
+    BEGIN
+        UPDATE CATEGORIES 
+        SET TX_NAME = @name, 
+            TX_IMAGE = @image, 
+            CD_STORE_ID = @storeID 
+        WHERE KY_CATEGORY_ID = @categoryId;
+
+        IF @@ROWCOUNT > 0
+            RETURN 1;
+        ELSE
+            RETURN 0;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO CATEGORIES (TX_NAME, TX_IMAGE, CD_STORE_ID)
+        VALUES (@name, @image, @storeID);
+        
+        IF @@ROWCOUNT > 0
+            RETURN 1;
+        ELSE
+            RETURN 0;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE GetCategory
+    @id INT
+AS
+BEGIN
+    SELECT 
+        KY_CATEGORY_ID,
+        TX_NAME,
+        TX_IMAGE,
+        CD_STORE_ID
+    FROM 
+        CATEGORIES
+    WHERE 
+        KY_CATEGORY_ID = @id;
+END
+
+GO
