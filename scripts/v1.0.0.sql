@@ -601,3 +601,66 @@ BEGIN
 END
 
 GO
+
+CREATE OR ALTER PROCEDURE GetProduct
+    @id INT
+AS
+BEGIN
+    SELECT *
+	FROM 
+        PRODUCTS
+    WHERE 
+        KY_PRODUCT_ID = @id;
+END
+
+GO
+
+CREATE OR ALTER PROCEDURE RemoveProduct
+    @productId INT
+AS
+BEGIN
+    DELETE FROM PRODUCTS
+    WHERE KY_PRODUCT_ID = @productId;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN 0;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AddOrUpdateProduct
+    @productId INT,
+    @name NVARCHAR(100),
+    @description NVARCHAR(MAX),
+    @price DECIMAL(10, 2),
+    @categoryId INT,
+    @image NVARCHAR(255),
+    @storeId INT
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM PRODUCTS WHERE KY_PRODUCT_ID = @productId)
+    BEGIN
+        -- Update existing product
+        UPDATE PRODUCTS
+        SET 
+            TX_NAME = @name,
+            TX_DESCRIPTION = @description,
+            DB_PRICE = @price,
+            CD_CATEGORY_ID = @categoryId,
+            TX_IMAGE = @image,
+            CD_STORE_ID = @storeId
+        WHERE KY_PRODUCT_ID = @productId;
+    END
+    ELSE
+    BEGIN
+        -- Insert new product
+        INSERT INTO PRODUCTS (TX_NAME, TX_DESCRIPTION, DB_PRICE, CD_CATEGORY_ID, TX_IMAGE, CD_STORE_ID)
+        VALUES (@name, @description, @price, @categoryId, @image, @storeId);
+    END
+END;
+GO
