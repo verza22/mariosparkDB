@@ -664,3 +664,137 @@ BEGIN
     END
 END;
 GO
+
+CREATE OR ALTER PROCEDURE RemoveCustomer
+    @customerId INT
+AS
+BEGIN
+    DELETE FROM CUSTOMERS
+    WHERE KY_CUSTOMER_ID = @customerId;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN 0;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE GetCustomer
+    @customerId INT
+AS
+BEGIN
+    SELECT 
+        KY_CUSTOMER_ID,
+        TX_NAME,
+        TX_DNI,
+        TX_EMAIL,
+        TX_PHONE,
+        TX_ADDRESS,
+        CD_STORE_ID
+    FROM 
+        CUSTOMERS
+    WHERE 
+        KY_CUSTOMER_ID = @customerId;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AddOrUpdateCustomer
+    @customerId INT,
+    @name NVARCHAR(100),
+    @dni NVARCHAR(20),
+    @email NVARCHAR(100),
+    @phone NVARCHAR(20),
+    @address NVARCHAR(255),
+    @storeId INT
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM CUSTOMERS WHERE KY_CUSTOMER_ID = @customerId)
+    BEGIN
+        -- Update existing customer
+        UPDATE CUSTOMERS
+        SET 
+            TX_NAME = @name,
+            TX_DNI = @dni,
+            TX_EMAIL = @email,
+            TX_PHONE = @phone,
+            TX_ADDRESS = @address,
+            CD_STORE_ID = @storeId
+        WHERE KY_CUSTOMER_ID = @customerId;
+    END
+    ELSE
+    BEGIN
+        -- Insert new customer
+        INSERT INTO CUSTOMERS (TX_NAME, TX_DNI, TX_EMAIL, TX_PHONE, TX_ADDRESS, CD_STORE_ID)
+        VALUES (@name, @dni, @email, @phone, @address, @storeId);
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE RemoveUser
+    @userId INT
+AS
+BEGIN
+	DELETE FROM USER_STORES
+	WHERE CD_USER_ID = @userId;
+
+    DELETE FROM USERS
+    WHERE KY_USER_ID = @userId;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN 0;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AddOrUpdateUser
+    @userId INT,
+    @username NVARCHAR(50),
+    @name NVARCHAR(50),
+    @password NVARCHAR(255),
+    @userTypeId INT,
+	@storeId INT
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM USERS WHERE KY_USER_ID = @userId)
+    BEGIN
+		if @password = ''
+			BEGIN
+			UPDATE USERS
+			SET 
+				TX_USERNAME = @username,
+				TX_NAME = @name,
+				CD_USER_TYPE_ID = @userTypeId
+			WHERE KY_USER_ID = @userId;
+			END
+		ELSE
+			BEGIN
+			UPDATE USERS
+			SET 
+				TX_USERNAME = @username,
+				TX_NAME = @name,
+				TX_PASSWORD = @password,
+				CD_USER_TYPE_ID = @userTypeId
+			WHERE KY_USER_ID = @userId;
+			END
+    END
+    ELSE
+    BEGIN
+        INSERT INTO USERS (TX_USERNAME, TX_NAME, TX_PASSWORD, CD_USER_TYPE_ID)
+        VALUES (@username, @name, @password, @userTypeId);
+
+		 SET @userId = SCOPE_IDENTITY();
+
+		 INSERT INTO USER_STORES (CD_USER_ID, CD_STORE_ID)
+		 VALUES (@userId, @storeId);
+    END
+END;
+GO
