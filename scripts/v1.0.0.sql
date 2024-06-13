@@ -798,3 +798,170 @@ BEGIN
     END
 END;
 GO
+
+CREATE OR ALTER PROCEDURE RemoveHotelRoom
+    @roomId INT
+AS
+BEGIN
+    DELETE FROM HOTEL_ROOMS
+    WHERE KY_ROOM_ID = @roomId;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN 0;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AddOrUpdateHotelRoom
+    @roomId INT,
+    @roomName NVARCHAR(50),
+    @capacity INT,
+    @roomTypeId INT,
+    @storeId INT
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM HOTEL_ROOMS WHERE KY_ROOM_ID = @roomId)
+    BEGIN
+        -- Update existing room
+        UPDATE HOTEL_ROOMS
+        SET 
+            TX_ROOM_NAME = @roomName,
+            INT_CAPACITY = @capacity,
+            CD_ROOM_TYPE_ID = @roomTypeId,
+            CD_STORE_ID = @storeId
+        WHERE KY_ROOM_ID = @roomId;
+    END
+    ELSE
+    BEGIN
+        -- Insert new room
+        INSERT INTO HOTEL_ROOMS (TX_ROOM_NAME, INT_CAPACITY, CD_ROOM_TYPE_ID, CD_STORE_ID)
+        VALUES (@roomName, @capacity, @roomTypeId, @storeId);
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE InsertOrder
+    @cashierId INT,
+    @tableNumber INT,
+    @waiterId INT,
+    @chefId INT,
+    @total DECIMAL(10, 2),
+    @date DATETIME,
+    @paymentMethod NVARCHAR(50),
+    @orderStatus INT,
+    @storeId INT,
+    @customer NVARCHAR(MAX),
+    @products NVARCHAR(MAX)
+AS
+BEGIN
+    -- Insert new order
+    INSERT INTO ORDERS (
+        CD_CASHIER_ID, 
+        CD_TABLE_NUMBER, 
+        CD_WAITER_ID, 
+        CD_CHEF_ID, 
+        CD_TOTAL, 
+        DT_DATE, 
+        TX_PAYMENT_METHOD, 
+        CD_ORDER_STATUS, 
+        CD_STORE_ID, 
+        JS_CUSTOMER, 
+        JS_PRODUCTS
+    )
+    VALUES (
+        @cashierId, 
+        @tableNumber, 
+        @waiterId, 
+        @chefId, 
+        @total, 
+        @date, 
+        @paymentMethod, 
+        @orderStatus, 
+        @storeId, 
+        @customer, 
+        @products
+    );
+END;
+GO
+
+
+CREATE OR ALTER PROCEDURE RemoveHotelOrder
+    @orderId INT
+AS
+BEGIN
+    DELETE FROM HOTEL_ORDERS
+    WHERE KY_ORDER_ID = @orderId;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN 0;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AddOrUpdateHotelOrder
+    @orderId INT,
+    @userId INT,
+    @total DECIMAL(10, 2),
+    @dateIn DATETIME,
+    @dateOut DATETIME,
+    @paymentMethod NVARCHAR(50),
+    @people INT,
+    @room NVARCHAR(MAX),
+    @customer NVARCHAR(MAX),
+    @storeId INT
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM HOTEL_ORDERS WHERE KY_ORDER_ID = @orderId)
+    BEGIN
+        -- Update existing order
+        UPDATE HOTEL_ORDERS
+        SET 
+            CD_USER_ID = @userId,
+            DEC_TOTAL = @total,
+            DT_DATE_IN = @dateIn,
+            DT_DATE_OUT = @dateOut,
+            TX_PAYMENT_METHOD = @paymentMethod,
+            INT_PEOPLE = @people,
+            JS_ROOM = @room,
+            JS_CUSTOMER = @customer,
+            CD_STORE_ID = @storeId
+        WHERE KY_ORDER_ID = @orderId;
+    END
+    ELSE
+    BEGIN
+        -- Insert new order
+        INSERT INTO HOTEL_ORDERS (
+            CD_USER_ID, 
+            DEC_TOTAL, 
+            DT_DATE_IN, 
+            DT_DATE_OUT, 
+            TX_PAYMENT_METHOD, 
+            INT_PEOPLE, 
+            JS_ROOM, 
+            JS_CUSTOMER, 
+            CD_STORE_ID
+        )
+        VALUES (
+            @userId, 
+            @total, 
+            @dateIn, 
+            @dateOut, 
+            @paymentMethod, 
+            @people, 
+            @room, 
+            @customer, 
+            @storeId
+        );
+    END
+END;
+GO
