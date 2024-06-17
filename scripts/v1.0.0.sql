@@ -568,19 +568,16 @@ BEGIN
         WHERE KY_CATEGORY_ID = @categoryId;
 
         IF @@ROWCOUNT > 0
-            RETURN 1;
+            SELECT 1 as RESULT;
         ELSE
-            RETURN 0;
+            SELECT 0 as RESULT;
     END
     ELSE
     BEGIN
         INSERT INTO CATEGORIES (TX_NAME, TX_IMAGE, CD_STORE_ID)
         VALUES (@name, @image, @storeID);
-        
-        IF @@ROWCOUNT > 0
-            RETURN 1;
-        ELSE
-            RETURN 0;
+
+		SELECT SCOPE_IDENTITY() as RESULT;
     END
 END;
 GO
@@ -645,7 +642,6 @@ AS
 BEGIN
     IF EXISTS (SELECT 1 FROM PRODUCTS WHERE KY_PRODUCT_ID = @productId)
     BEGIN
-        -- Update existing product
         UPDATE PRODUCTS
         SET 
             TX_NAME = @name,
@@ -655,12 +651,18 @@ BEGIN
             TX_IMAGE = @image,
             CD_STORE_ID = @storeId
         WHERE KY_PRODUCT_ID = @productId;
+
+		IF @@ROWCOUNT > 0
+            SELECT 1 as RESULT;
+        ELSE
+            SELECT 0 as RESULT;
     END
     ELSE
     BEGIN
-        -- Insert new product
         INSERT INTO PRODUCTS (TX_NAME, TX_DESCRIPTION, DB_PRICE, CD_CATEGORY_ID, TX_IMAGE, CD_STORE_ID)
         VALUES (@name, @description, @price, @categoryId, @image, @storeId);
+
+		SELECT SCOPE_IDENTITY() as RESULT;
     END
 END;
 GO
@@ -714,7 +716,6 @@ AS
 BEGIN
     IF EXISTS (SELECT 1 FROM CUSTOMERS WHERE KY_CUSTOMER_ID = @customerId)
     BEGIN
-        -- Update existing customer
         UPDATE CUSTOMERS
         SET 
             TX_NAME = @name,
@@ -724,12 +725,18 @@ BEGIN
             TX_ADDRESS = @address,
             CD_STORE_ID = @storeId
         WHERE KY_CUSTOMER_ID = @customerId;
+
+		IF @@ROWCOUNT > 0
+            SELECT 1 as RESULT;
+        ELSE
+            SELECT 0 as RESULT;
     END
     ELSE
     BEGIN
-        -- Insert new customer
         INSERT INTO CUSTOMERS (TX_NAME, TX_DNI, TX_EMAIL, TX_PHONE, TX_ADDRESS, CD_STORE_ID)
         VALUES (@name, @dni, @email, @phone, @address, @storeId);
+
+		SELECT SCOPE_IDENTITY() as RESULT;
     END
 END;
 GO
@@ -785,6 +792,11 @@ BEGIN
 				CD_USER_TYPE_ID = @userTypeId
 			WHERE KY_USER_ID = @userId;
 			END
+
+		IF @@ROWCOUNT > 0
+            SELECT 1 as RESULT;
+        ELSE
+            SELECT 0 as RESULT;
     END
     ELSE
     BEGIN
@@ -795,6 +807,8 @@ BEGIN
 
 		 INSERT INTO USER_STORES (CD_USER_ID, CD_STORE_ID)
 		 VALUES (@userId, @storeId);
+
+		 SELECT @userId as RESULT;
     END
 END;
 GO
@@ -827,7 +841,6 @@ AS
 BEGIN
     IF EXISTS (SELECT 1 FROM HOTEL_ROOMS WHERE KY_ROOM_ID = @roomId)
     BEGIN
-        -- Update existing room
         UPDATE HOTEL_ROOMS
         SET 
             TX_ROOM_NAME = @roomName,
@@ -835,12 +848,18 @@ BEGIN
             CD_ROOM_TYPE_ID = @roomTypeId,
             CD_STORE_ID = @storeId
         WHERE KY_ROOM_ID = @roomId;
+
+		IF @@ROWCOUNT > 0
+            SELECT 1 as RESULT;
+        ELSE
+            SELECT 0 as RESULT;
     END
     ELSE
     BEGIN
-        -- Insert new room
         INSERT INTO HOTEL_ROOMS (TX_ROOM_NAME, INT_CAPACITY, CD_ROOM_TYPE_ID, CD_STORE_ID)
         VALUES (@roomName, @capacity, @roomTypeId, @storeId);
+
+		SELECT SCOPE_IDENTITY() as RESULT;
     END
 END;
 GO
@@ -859,7 +878,6 @@ CREATE OR ALTER PROCEDURE InsertOrder
     @products NVARCHAR(MAX)
 AS
 BEGIN
-    -- Insert new order
     INSERT INTO ORDERS (
         CD_CASHIER_ID, 
         CD_TABLE_NUMBER, 
@@ -886,6 +904,8 @@ BEGIN
         @customer, 
         @products
     );
+
+	SELECT SCOPE_IDENTITY() as RESULT;
 END;
 GO
 
@@ -923,7 +943,6 @@ AS
 BEGIN
     IF EXISTS (SELECT 1 FROM HOTEL_ORDERS WHERE KY_ORDER_ID = @orderId)
     BEGIN
-        -- Update existing order
         UPDATE HOTEL_ORDERS
         SET 
             CD_USER_ID = @userId,
@@ -936,10 +955,14 @@ BEGIN
             JS_CUSTOMER = @customer,
             CD_STORE_ID = @storeId
         WHERE KY_ORDER_ID = @orderId;
+
+		IF @@ROWCOUNT > 0
+            SELECT 1 as RESULT;
+        ELSE
+            SELECT 0 as RESULT;
     END
     ELSE
     BEGIN
-        -- Insert new order
         INSERT INTO HOTEL_ORDERS (
             CD_USER_ID, 
             DEC_TOTAL, 
@@ -962,6 +985,8 @@ BEGIN
             @customer, 
             @storeId
         );
+
+		SELECT SCOPE_IDENTITY() as RESULT;
     END
 END;
 GO
