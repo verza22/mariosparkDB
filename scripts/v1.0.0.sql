@@ -878,6 +878,25 @@ CREATE OR ALTER PROCEDURE InsertOrder
     @products NVARCHAR(MAX)
 AS
 BEGIN
+
+
+    IF EXISTS (
+        SELECT 1 FROM ORDERS 
+        WHERE CD_CASHIER_ID = @cashierId 
+          AND CD_TABLE_NUMBER = @tableNumber 
+          AND CD_WAITER_ID = @waiterId 
+          AND CD_CHEF_ID = @chefId 
+          AND CD_TOTAL = @total 
+          AND DT_DATE = @date 
+          AND TX_PAYMENT_METHOD = @paymentMethod 
+          AND CD_ORDER_STATUS = @orderStatus 
+          AND CD_STORE_ID = @storeId 
+    )
+    BEGIN
+		SELECT 0 as RESULT;
+        RETURN;
+    END
+
     INSERT INTO ORDERS (
         CD_CASHIER_ID, 
         CD_TABLE_NUMBER, 
