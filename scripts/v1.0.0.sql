@@ -1056,3 +1056,20 @@ BEGIN
 END;
 
 GO
+
+CREATE OR ALTER PROCEDURE UpdateUserPassword
+    @userId INT,
+    @password NVARCHAR(MAX)
+AS
+BEGIN
+
+	UPDATE USERS
+    SET TX_PASSWORD = @password
+    WHERE KY_USER_ID = @userId;
+
+	IF @@ROWCOUNT > 0
+        SELECT 1 as RESULT;
+    ELSE
+        SELECT 0 as RESULT;
+
+END;
