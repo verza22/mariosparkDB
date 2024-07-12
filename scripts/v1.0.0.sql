@@ -311,6 +311,35 @@ VALUES
 1);
 
 
+GO
+
+CREATE TABLE WIDGETS (
+    KY_WIDGET_ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+    CD_USER_ID INT NOT NULL,
+    TX_TITLE VARCHAR(255) NOT NULL,
+    TX_SYMBOL VARCHAR(255) NOT NULL,
+    CD_IS_LEADING BIT NOT NULL,
+    CD_INFO_TYPE INT NOT NULL,
+    CD_TYPE INT NOT NULL,
+    TX_DATE_FROM VARCHAR(255),
+    TX_DATE_TO VARCHAR(255),
+    CD_DATE_FROM_TYPE INT,
+    CD_DATE_TO_TYPE INT,
+    CD_POSITION INT NOT NULL,
+    CD_SIZEX INT NOT NULL,
+    CD_SIZEY INT NOT NULL,
+    TX_BGCOLOR VARCHAR(255)
+	FOREIGN KEY (CD_USER_ID) REFERENCES USERS(KY_USER_ID)
+);
+
+GO
+
+INSERT INTO WIDGETS (CD_USER_ID, TX_TITLE, TX_SYMBOL, CD_IS_LEADING, CD_INFO_TYPE, CD_TYPE, TX_DATE_FROM, TX_DATE_TO, CD_DATE_FROM_TYPE, CD_DATE_TO_TYPE, CD_POSITION, CD_SIZEX, CD_SIZEY, TX_BGCOLOR)
+VALUES 
+    (1, 'Widget Title 1', '$', 1, 0, 0, '2024-07-01', '2024-07-30', 1, 1, 1, 4, 2, '#FF0000'),
+    (1, 'Widget Title 2', '$', 0, 1, 0, '2024-07-01', '2024-07-30', 1, 1, 2, 2, 2, '#00FF00'),
+    (1, 'Widget Title 3', '%', 1, 2, 0, '2024-07-01', '2024-07-30', 1, 1, 3, 2, 2, '#0000FF');
+
 --SP
 
 GO
@@ -1078,23 +1107,115 @@ END;
 
 GO
 
-CREATE TABLE Widgets (
-    KY_WIDGET_ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
-    CD_USER_ID INT NOT NULL,
-    TX_TITLE VARCHAR(255) NOT NULL,
-    TX_SYMBOL VARCHAR(255) NOT NULL,
-    CD_IS_LEADING BIT NOT NULL,
-    CD_INFO_TYPE INT NOT NULL,
-    CD_TYPE INT NOT NULL,
-    TX_DATE_FROM VARCHAR(255),
-    TX_DATE_TO VARCHAR(255),
-    CD_DATE_FROM_TYPE INT,
-    CD_DATE_TO_TYPE INT,
-    CD_POSITION INT NOT NULL,
-    CD_SIZEX INT NOT NULL,
-    CD_SIZEY INT NOT NULL,
-    TX_BGCOLOR VARCHAR(255)
-	FOREIGN KEY (CD_USER_ID) REFERENCES USERS(KY_USER_ID)
-);
+CREATE OR ALTER PROCEDURE GetWidgets
+    @userId INT
+AS
+BEGIN
+    SELECT *
+    FROM WIDGETS
+    WHERE CD_USER_ID = @userId;
+END;
 
+GO
+
+CREATE OR ALTER PROCEDURE AddOrUpdateWidget
+    @widgetId INT,
+    @userId INT,
+    @title VARCHAR(255),
+    @symbol VARCHAR(255),
+    @isLeading BIT,
+    @infoType INT,
+    @type INT,
+    @dateFrom VARCHAR(255),
+    @dateTo VARCHAR(255),
+    @dateFromType INT,
+    @dateToType INT,
+    @position INT,
+    @sizeX INT,
+    @sizeY INT,
+    @bgColor VARCHAR(255)
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Widgets WHERE KY_WIDGET_ID = @widgetId)
+    BEGIN
+        UPDATE WIDGETS
+        SET 
+            CD_USER_ID = @userId,
+            TX_TITLE = @title,
+            TX_SYMBOL = @symbol,
+            CD_IS_LEADING = @isLeading,
+            CD_INFO_TYPE = @infoType,
+            CD_TYPE = @type,
+            TX_DATE_FROM = @dateFrom,
+            TX_DATE_TO = @dateTo,
+            CD_DATE_FROM_TYPE = @dateFromType,
+            CD_DATE_TO_TYPE = @dateToType,
+            CD_POSITION = @position,
+            CD_SIZEX = @sizeX,
+            CD_SIZEY = @sizeY,
+            TX_BGCOLOR = @bgColor
+        WHERE KY_WIDGET_ID = @widgetId;
+
+        IF @@ROWCOUNT > 0
+            SELECT 1 as RESULT;
+        ELSE
+            SELECT 0 as RESULT;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO WIDGETS (
+            CD_USER_ID, 
+            TX_TITLE, 
+            TX_SYMBOL, 
+            CD_IS_LEADING, 
+            CD_INFO_TYPE, 
+            CD_TYPE, 
+            TX_DATE_FROM, 
+            TX_DATE_TO, 
+            CD_DATE_FROM_TYPE, 
+            CD_DATE_TO_TYPE, 
+            CD_POSITION, 
+            CD_SIZEX, 
+            CD_SIZEY, 
+            TX_BGCOLOR
+        )
+        VALUES (
+            @userId, 
+            @title, 
+            @symbol, 
+            @isLeading, 
+            @infoType, 
+            @type, 
+            @dateFrom, 
+            @dateTo, 
+            @dateFromType, 
+            @dateToType, 
+            @position, 
+            @sizeX, 
+            @sizeY, 
+            @bgColor
+        );
+
+        SELECT SCOPE_IDENTITY() as RESULT;
+    END
+END;
+
+GO
+
+CREATE OR ALTER PROCEDURE RemoveWidget
+    @widgetId INT
+AS
+BEGIN
+    DELETE FROM WIDGETS
+    WHERE KY_WIDGET_ID = @widgetId;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN 0;
+    END
+END;
 GO
