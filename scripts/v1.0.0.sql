@@ -1219,3 +1219,106 @@ BEGIN
     END
 END;
 GO
+
+CREATE OR ALTER PROCEDURE GetWidgetData
+    @widgetID INT,
+    @storeID INT
+AS
+BEGIN
+
+	DECLARE @infoType int;
+
+	SELECT @infoType = [CD_INFO_TYPE] FROM WIDGETS WHERE KY_WIDGET_ID = @widgetID;
+
+	 --OrderTotal = 0,
+	 --OrderCount = 1,
+	 --HotelOrderTotal = 2,
+	 --HotelOrderCount = 3,
+
+	 --WaiterOrderTotal = 4,
+	 --WaiterOrderCount = 5,
+	 --CustomerCount = 6,
+	 --ProductCount = 7,
+	 --CategoryCount = 8,
+	 --OtherCustomerCount = 9,
+	 --OtherProductCount = 10
+
+	IF @infoType = 0
+		SELECT sum(CD_TOTAL) as RESULT
+		FROM ORDERS
+		WHERE CD_STORE_ID = @storeID;
+	ELSE IF @infoType = 1
+		SELECT count(*) as RESULT
+		FROM ORDERS
+		WHERE CD_STORE_ID = @storeID;
+	ELSE IF @infoType = 2
+		SELECT sum(DEC_TOTAL) as RESULT
+		FROM HOTEL_ORDERS
+		WHERE CD_STORE_ID = @storeID;
+	ELSE IF @infoType = 3
+		SELECT count(*) as RESULT
+		FROM HOTEL_ORDERS
+		WHERE CD_STORE_ID = @storeID;
+	ELSE 
+		SELECT 0 AS RESULT;
+END;
+
+GO
+
+
+CREATE OR ALTER PROCEDURE GetWidgetDataList
+    @widgetID INT,
+    @storeID INT
+AS
+BEGIN
+
+	DECLARE @infoType int;
+
+	SELECT @infoType = [CD_INFO_TYPE] FROM WIDGETS WHERE KY_WIDGET_ID = @widgetID;
+
+	 --OrderTotal = 0,
+	 --OrderCount = 1,
+	 --HotelOrderTotal = 2,
+	 --HotelOrderCount = 3,
+
+	 --WaiterOrderTotal = 4,
+	 --WaiterOrderCount = 5,
+	 --CustomerCount = 6,
+	 --ProductCount = 7,
+	 --CategoryCount = 8,
+	 --OtherCustomerCount = 9,
+	 --OtherProductCount = 10
+
+	IF @infoType = 0
+		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, SUM(CD_TOTAL) AS RESULT
+		FROM ORDERS
+		WHERE CD_STORE_ID = @storeID
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
+		ORDER BY WeekNumber;
+
+	ELSE IF @infoType = 1
+		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(*) AS RESULT
+		FROM ORDERS
+		WHERE CD_STORE_ID = @storeID
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
+		ORDER BY WeekNumber;
+
+	ELSE IF @infoType = 2
+		SELECT DATEPART(ISO_WEEK, DT_DATE_IN) AS WeekNumber, SUM(DEC_TOTAL) AS RESULT
+		FROM HOTEL_ORDERS
+		WHERE CD_STORE_ID = @storeID
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN)
+		ORDER BY WeekNumber;
+
+	ELSE IF @infoType = 3
+		SELECT DATEPART(ISO_WEEK, DT_DATE_IN) AS WeekNumber, count(*) AS RESULT
+		FROM HOTEL_ORDERS
+		WHERE CD_STORE_ID = @storeID
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN)
+		ORDER BY WeekNumber;
+
+	ELSE 
+		SELECT 0 AS RESULT;
+END;
+
+GO
