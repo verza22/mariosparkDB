@@ -1113,7 +1113,8 @@ AS
 BEGIN
     SELECT *
     FROM WIDGETS
-    WHERE CD_USER_ID = @userId;
+    WHERE CD_USER_ID = @userId
+	ORDER BY CD_POSITION;
 END;
 
 GO
@@ -1136,6 +1137,7 @@ CREATE OR ALTER PROCEDURE AddOrUpdateWidget
     @bgColor VARCHAR(255)
 AS
 BEGIN
+
     IF EXISTS (SELECT 1 FROM Widgets WHERE KY_WIDGET_ID = @widgetId)
     BEGIN
         UPDATE WIDGETS
@@ -1163,6 +1165,11 @@ BEGIN
     END
     ELSE
     BEGIN
+		-- Obtener la máxima posición actual de la tabla
+		SELECT @position = ISNULL(MAX(CD_POSITION), 0) + 1
+		FROM WIDGETS
+		WHERE CD_USER_ID = @userId;
+
         INSERT INTO WIDGETS (
             CD_USER_ID, 
             TX_TITLE, 
@@ -1319,6 +1326,36 @@ BEGIN
 
 	ELSE 
 		SELECT 0 AS RESULT;
+END;
+
+GO
+
+CREATE OR ALTER PROCEDURE UpdateWidgetPositions
+    @userID INT,
+    @widgetIDs VARCHAR(MAX)
+AS
+BEGIN
+    -- Crear una tabla temporal para almacenar los IDs y las posiciones
+    CREATE TABLE #TempWidgetIds (
+        KY_WIDGET_ID INT,
+        POSITION INT
+    );
+
+    -- Separar los IDs y almacenarlos en la tabla temporal con la posición
+    INSERT INTO #TempWidgetIds (KY_WIDGET_ID, POSITION)
+    SELECT CAST(value AS INT), ROW_NUMBER() OVER (ORDER BY (SELECT 1))
+    FROM STRING_SPLIT(@widgetIDs, ',');
+
+    -- Actualizar la tabla WIDGETS con las nuevas posiciones solo para la tienda específica
+    UPDATE W
+    SET W.CD_POSITION = T.POSITION
+    FROM WIDGETS W
+    INNER JOIN #TempWidgetIds T
+    ON W.KY_WIDGET_ID = T.KY_WIDGET_ID
+    WHERE W.CD_USER_ID = @userID;
+
+    -- Eliminar la tabla temporal
+    DROP TABLE #TempWidgetIds;
 END;
 
 GO
