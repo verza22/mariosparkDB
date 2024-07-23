@@ -310,6 +310,43 @@ VALUES
 }', 
 1);
 
+GO
+
+CREATE TABLE WIDGET_INFO_TYPES (
+    KY_ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+    TX_NAME VARCHAR(255) NOT NULL
+);
+
+GO
+
+INSERT INTO WIDGET_INFO_TYPES (TX_NAME) VALUES
+    ('Order Total'),
+    ('Order Count'),
+    ('Hotel Order Total'),
+    ('Hotel Order Count'),
+    ('Waiter Order Total'),
+    ('Waiter Order Count'),
+    ('Customer Count'),
+    ('Product Count'),
+    ('Category Count'),
+    ('Other Customer Count'),
+    ('Other Product Count');
+
+
+GO
+
+CREATE TABLE WIDGET_TYPES (
+	KY_ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+    TX_NAME VARCHAR(255)
+);
+
+GO
+
+INSERT INTO WIDGET_TYPES (TX_NAME) VALUES
+    ('Kpi'),
+    ('List'),
+    ('Pie'),
+    ('Column');
 
 GO
 
@@ -336,9 +373,9 @@ GO
 
 INSERT INTO WIDGETS (CD_USER_ID, TX_TITLE, TX_SYMBOL, CD_IS_LEADING, CD_INFO_TYPE, CD_TYPE, TX_DATE_FROM, TX_DATE_TO, CD_DATE_FROM_TYPE, CD_DATE_TO_TYPE, CD_POSITION, CD_SIZEX, CD_SIZEY, TX_BGCOLOR)
 VALUES 
-    (1, 'Widget Title 1', '$', 1, 0, 0, '2024-07-01', '2024-07-30', 1, 1, 1, 4, 2, '#FF0000'),
-    (1, 'Widget Title 2', '$', 0, 1, 0, '2024-07-01', '2024-07-30', 1, 1, 2, 2, 2, '#00FF00'),
-    (1, 'Widget Title 3', '%', 1, 2, 0, '2024-07-01', '2024-07-30', 1, 1, 3, 2, 2, '#0000FF');
+    (1, 'Widget Title 1', '$', 1, 1, 2, '2024-07-01', '2024-07-30', 1, 1, 1, 100, 200, '#FF0000'),
+    (1, 'Widget Title 2', '$', 0, 1, 1, '2024-07-01', '2024-07-30', 1, 1, 2, 50, 100, '#00FF00'),
+    (1, 'Widget Title 3', '%', 1, 1, 1, '2024-07-01', '2024-07-30', 1, 1, 3, 50, 100, '#0000FF');
 
 --SP
 
@@ -1250,19 +1287,19 @@ BEGIN
 	 --OtherCustomerCount = 9,
 	 --OtherProductCount = 10
 
-	IF @infoType = 0
+	IF @infoType = 1
 		SELECT sum(CD_TOTAL) as RESULT
 		FROM ORDERS
 		WHERE CD_STORE_ID = @storeID;
-	ELSE IF @infoType = 1
+	ELSE IF @infoType = 2
 		SELECT count(*) as RESULT
 		FROM ORDERS
 		WHERE CD_STORE_ID = @storeID;
-	ELSE IF @infoType = 2
+	ELSE IF @infoType = 3
 		SELECT sum(DEC_TOTAL) as RESULT
 		FROM HOTEL_ORDERS
 		WHERE CD_STORE_ID = @storeID;
-	ELSE IF @infoType = 3
+	ELSE IF @infoType = 4
 		SELECT count(*) as RESULT
 		FROM HOTEL_ORDERS
 		WHERE CD_STORE_ID = @storeID;
@@ -1296,28 +1333,28 @@ BEGIN
 	 --OtherCustomerCount = 9,
 	 --OtherProductCount = 10
 
-	IF @infoType = 0
+	IF @infoType = 1
 		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, SUM(CD_TOTAL) AS RESULT
 		FROM ORDERS
 		WHERE CD_STORE_ID = @storeID
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
 		ORDER BY WeekNumber;
 
-	ELSE IF @infoType = 1
+	ELSE IF @infoType = 2
 		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(*) AS RESULT
 		FROM ORDERS
 		WHERE CD_STORE_ID = @storeID
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
 		ORDER BY WeekNumber;
 
-	ELSE IF @infoType = 2
+	ELSE IF @infoType = 3
 		SELECT DATEPART(ISO_WEEK, DT_DATE_IN) AS WeekNumber, SUM(DEC_TOTAL) AS RESULT
 		FROM HOTEL_ORDERS
 		WHERE CD_STORE_ID = @storeID
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN)
 		ORDER BY WeekNumber;
 
-	ELSE IF @infoType = 3
+	ELSE IF @infoType = 4
 		SELECT DATEPART(ISO_WEEK, DT_DATE_IN) AS WeekNumber, count(*) AS RESULT
 		FROM HOTEL_ORDERS
 		WHERE CD_STORE_ID = @storeID
@@ -1356,6 +1393,24 @@ BEGIN
 
     -- Eliminar la tabla temporal
     DROP TABLE #TempWidgetIds;
+END;
+
+GO
+
+CREATE OR ALTER PROCEDURE GetWidgetTypeList
+AS
+BEGIN
+    SELECT *
+    FROM WIDGET_TYPES;
+END;
+
+GO
+
+CREATE OR ALTER PROCEDURE GetWidgetInfoTypeList
+AS
+BEGIN
+    SELECT *
+    FROM WIDGET_INFO_TYPES;
 END;
 
 GO
