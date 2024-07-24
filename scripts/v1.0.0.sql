@@ -137,6 +137,7 @@ VALUES
 GO
 
 
+
 -- Crear una tabla llamada "CUSTOMERS" con 'KY_CUSTOMER_ID' autoincrementable
 CREATE TABLE CUSTOMERS (
     KY_CUSTOMER_ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
@@ -146,6 +147,7 @@ CREATE TABLE CUSTOMERS (
     TX_PHONE NVARCHAR(20),
     TX_ADDRESS NVARCHAR(255),
     CD_STORE_ID INT NOT NULL,
+	DT_DATE DATETIME DEFAULT GETDATE() NOT NULL,
 	FOREIGN KEY (CD_STORE_ID) REFERENCES STORES(KY_STORE_ID)
 );
 GO
@@ -345,7 +347,7 @@ GO
 INSERT INTO WIDGET_TYPES (TX_NAME) VALUES
     ('Kpi'),
     ('List'),
-    ('Pie'),
+    ('Line'),
     ('Column');
 
 GO
@@ -1320,18 +1322,18 @@ BEGIN
 
 	SELECT @infoType = [CD_INFO_TYPE] FROM WIDGETS WHERE KY_WIDGET_ID = @widgetID;
 
-	 --OrderTotal = 0,
-	 --OrderCount = 1,
-	 --HotelOrderTotal = 2,
-	 --HotelOrderCount = 3,
+	 --OrderTotal = 1,
+	 --OrderCount = 2,
+	 --HotelOrderTotal = 3,
+	 --HotelOrderCount = 4,
 
-	 --WaiterOrderTotal = 4,
-	 --WaiterOrderCount = 5,
-	 --CustomerCount = 6,
-	 --ProductCount = 7,
-	 --CategoryCount = 8,
-	 --OtherCustomerCount = 9,
-	 --OtherProductCount = 10
+	 --WaiterOrderTotal = 5,
+	 --WaiterOrderCount = 6,
+	 --CustomerCount = 7,
+	 --ProductCount = 8,
+	 --CategoryCount = 9,
+	 --OtherCustomerCount = 10,
+	 --OtherProductCount = 11
 
 	IF @infoType = 1
 		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, SUM(CD_TOTAL) AS RESULT
@@ -1360,6 +1362,35 @@ BEGIN
 		WHERE CD_STORE_ID = @storeID
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN)
 		ORDER BY WeekNumber;
+
+	ELSE IF @infoType = 5
+		select x.WeekNumber as Fecha, x.RESULT as Venta, u.TX_NAME as Mesero
+		from (
+			SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, SUM(CD_TOTAL) AS RESULT, CD_WAITER_ID
+			FROM ORDERS
+			WHERE CD_STORE_ID = @storeID
+			GROUP BY DATEPART(ISO_WEEK, DT_DATE), CD_WAITER_ID
+		) x
+		JOIN [USERS] u ON u.KY_USER_ID = x.CD_WAITER_ID
+		order by x.WeekNumber;
+
+	ELSE IF @infoType = 6
+		select x.WeekNumber as Fecha, x.RESULT as [N. Ordenes], u.TX_NAME as Mesero
+		from (
+			SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(*) AS RESULT, CD_WAITER_ID
+			FROM ORDERS
+			WHERE CD_STORE_ID = @storeID
+			GROUP BY DATEPART(ISO_WEEK, DT_DATE), CD_WAITER_ID
+		) x
+		JOIN [USERS] u ON u.KY_USER_ID = x.CD_WAITER_ID
+		order by x.WeekNumber;
+
+	ELSE IF @infoType = 7
+		SELECT DATEPART(ISO_WEEK, DT_DATE) AS Fecha, COUNT(*) AS [N. Clientes]
+		FROM CUSTOMERS
+		WHERE CD_STORE_ID = @storeID
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
+		ORDER BY Fecha;
 
 	ELSE 
 		SELECT 0 AS RESULT;
