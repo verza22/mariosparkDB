@@ -1,6 +1,6 @@
 DECLARE @startDate DATE = '2024-05-01';
 DECLARE @endDate DATE = '2024-07-14';
-DECLARE @numRecords INT = 100;
+DECLARE @numRecords INT = 10;
 
 -- Variables para el bucle
 DECLARE @i INT = 0;
@@ -47,7 +47,7 @@ BEGIN
     }';
     SET @js_products = N'[
         {
-            "id": 1,
+            "id": ' + CAST(@i + 1 AS NVARCHAR) +',
             "name": "Product ' + CAST(@i + 1 AS NVARCHAR) + N'",
             "description": "",
             "price": ' + CAST(@cd_total / 2 AS NVARCHAR) + N',
@@ -67,7 +67,7 @@ GO
 
 DECLARE @startDate DATE = '2024-05-01';
 DECLARE @endDate DATE = '2024-07-14';
-DECLARE @numRecords INT = 100;
+DECLARE @numRecords INT = 10;
 
 -- Variables para el bucle
 DECLARE @i INT = 0;

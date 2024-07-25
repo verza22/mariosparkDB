@@ -137,7 +137,6 @@ VALUES
 GO
 
 
-
 -- Crear una tabla llamada "CUSTOMERS" con 'KY_CUSTOMER_ID' autoincrementable
 CREATE TABLE CUSTOMERS (
     KY_CUSTOMER_ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
@@ -1276,10 +1275,10 @@ BEGIN
 
 	SELECT @infoType = [CD_INFO_TYPE] FROM WIDGETS WHERE KY_WIDGET_ID = @widgetID;
 
-	 --OrderTotal = 0,
-	 --OrderCount = 1,
-	 --HotelOrderTotal = 2,
-	 --HotelOrderCount = 3,
+	 --OrderTotal = 1,
+	 --OrderCount = 2,
+	 --HotelOrderTotal = 3,
+	 --HotelOrderCount = 4,
 
 	 --WaiterOrderTotal = 4,
 	 --WaiterOrderCount = 5,
@@ -1391,6 +1390,101 @@ BEGIN
 		WHERE CD_STORE_ID = @storeID
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
 		ORDER BY Fecha;
+
+	ELSE IF @infoType = 8
+		BEGIN
+			;with cte as (
+				SELECT 
+					JSON_VALUE(product.value, '$.id') AS ProductId,
+					JSON_VALUE(product.value, '$.name') AS ProductName,
+					JSON_VALUE(product.value, '$.price') AS ProductPrice,
+					JSON_VALUE(product.value, '$.quantity') AS ProductQuantity,
+					DT_DATE
+				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID) p
+				CROSS APPLY 
+					OPENJSON(p.JS_PRODUCTS) AS product
+			),
+			cte2 as (
+				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(ProductId) AS Result, ProductId
+				from cte
+				GROUP BY DATEPART(ISO_WEEK, DT_DATE), ProductId
+			)
+			select cte2.WeekNumber, cte2.Result, p.TX_NAME as Product
+			from cte2
+			join PRODUCTS p ON p.KY_PRODUCT_ID = cte2.ProductId
+			ORDER BY WeekNumber;
+		END
+
+	ELSE IF @infoType = 9
+		BEGIN
+			;with cte as (
+				SELECT 
+					JSON_VALUE(product.value, '$.id') AS ProductId,
+					JSON_VALUE(product.value, '$.name') AS ProductName,
+					JSON_VALUE(product.value, '$.price') AS ProductPrice,
+					JSON_VALUE(product.value, '$.quantity') AS ProductQuantity,
+					DT_DATE
+				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID) p
+				CROSS APPLY 
+					OPENJSON(p.JS_PRODUCTS) AS product
+			),
+			cte2 as (
+				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(ProductId) AS Result, ProductId
+				from cte
+				GROUP BY DATEPART(ISO_WEEK, DT_DATE), ProductId
+			),
+			cte3 as (
+				select cte2.WeekNumber, SUM(cte2.Result) as Result, p.CD_CATEGORY_ID
+				from cte2
+				join PRODUCTS p ON p.KY_PRODUCT_ID = cte2.ProductId
+				group by cte2.WeekNumber, p.CD_CATEGORY_ID
+			)
+			select cte3.WeekNumber, cte3.Result, c.TX_NAME as Category
+			from cte3
+			join CATEGORIES c ON c.KY_CATEGORY_ID = cte3.CD_CATEGORY_ID
+			ORDER BY cte3.WeekNumber;
+		END
+
+	ELSE IF @infoType = 10
+		BEGIN
+			;with cte as (
+				SELECT 
+					JSON_VALUE(JS_CUSTOMER, '$.id') AS CustomerId,
+					DT_DATE
+				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID) p
+			),
+			cte2 as (
+				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(CustomerId) AS Result
+				from cte
+				GROUP BY DATEPART(ISO_WEEK, DT_DATE), CustomerId
+			)
+			select * 
+			from cte2
+			ORDER BY cte2.WeekNumber;
+		END
+
+	ELSE IF @infoType = 11
+		BEGIN
+			;with cte as (
+				SELECT 
+					JSON_VALUE(product.value, '$.id') AS ProductId,
+					JSON_VALUE(product.value, '$.name') AS ProductName,
+					JSON_VALUE(product.value, '$.price') AS ProductPrice,
+					JSON_VALUE(product.value, '$.quantity') AS ProductQuantity,
+					DT_DATE
+				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID) p
+				CROSS APPLY 
+					OPENJSON(p.JS_PRODUCTS) AS product
+			),
+			cte2 as (
+				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(ProductId) AS Result, ProductId
+				from cte
+				where ProductId = 0
+				GROUP BY DATEPART(ISO_WEEK, DT_DATE), ProductId
+			)
+			select cte2.WeekNumber, cte2.Result, 'Otro producto' as Product 
+			from cte2
+		END
 
 	ELSE 
 		SELECT 0 AS RESULT;
