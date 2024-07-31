@@ -1271,9 +1271,20 @@ CREATE OR ALTER PROCEDURE GetWidgetData
 AS
 BEGIN
 
-	DECLARE @infoType int;
+	DECLARE @infoType int, @dateFrom nvarchar(max), @dateTo nvarchar(max), @dateFromType int, @dateToType int;
 
-	SELECT @infoType = [CD_INFO_TYPE] FROM WIDGETS WHERE KY_WIDGET_ID = @widgetID;
+	SELECT
+		@infoType = [CD_INFO_TYPE],  
+		@dateFrom = [TX_DATE_FROM],
+		@dateTo = [TX_DATE_TO],
+		@dateFromType = [CD_DATE_FROM_TYPE],
+		@dateToType = [CD_DATE_TO_TYPE]
+	FROM WIDGETS WHERE KY_WIDGET_ID = @widgetID;
+
+	if(@dateFromType = 0)
+		set @dateFrom = CONVERT(DATE, DATEADD(DAY, CONVERT(INT, @dateFrom), GETDATE()));
+	if(@dateToType = 0)
+		set @dateTo = CONVERT(DATE, DATEADD(DAY, CONVERT(INT, @dateTo), GETDATE()));
 
 	 --OrderTotal = 1,
 	 --OrderCount = 2,
@@ -1291,19 +1302,23 @@ BEGIN
 	IF @infoType = 1
 		SELECT sum(CD_TOTAL) as RESULT
 		FROM ORDERS
-		WHERE CD_STORE_ID = @storeID;
+		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE between @dateFrom and @dateTo;
 	ELSE IF @infoType = 2
 		SELECT count(*) as RESULT
 		FROM ORDERS
-		WHERE CD_STORE_ID = @storeID;
+		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE between @dateFrom and @dateTo;
 	ELSE IF @infoType = 3
 		SELECT sum(DEC_TOTAL) as RESULT
 		FROM HOTEL_ORDERS
-		WHERE CD_STORE_ID = @storeID;
+		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE_IN between @dateFrom and @dateTo;
 	ELSE IF @infoType = 4
 		SELECT count(*) as RESULT
 		FROM HOTEL_ORDERS
-		WHERE CD_STORE_ID = @storeID;
+		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE_IN between @dateFrom and @dateTo;
 	ELSE 
 		SELECT 0 AS RESULT;
 END;
@@ -1317,9 +1332,20 @@ CREATE OR ALTER PROCEDURE GetWidgetDataList
 AS
 BEGIN
 
-	DECLARE @infoType int;
+	DECLARE @infoType int, @dateFrom nvarchar(max), @dateTo nvarchar(max), @dateFromType int, @dateToType int;
 
-	SELECT @infoType = [CD_INFO_TYPE] FROM WIDGETS WHERE KY_WIDGET_ID = @widgetID;
+	SELECT
+		@infoType = [CD_INFO_TYPE],  
+		@dateFrom = [TX_DATE_FROM],
+		@dateTo = [TX_DATE_TO],
+		@dateFromType = [CD_DATE_FROM_TYPE],
+		@dateToType = [CD_DATE_TO_TYPE]
+	FROM WIDGETS WHERE KY_WIDGET_ID = @widgetID;
+
+	if(@dateFromType = 0)
+		set @dateFrom = CONVERT(DATE, DATEADD(DAY, CONVERT(INT, @dateFrom), GETDATE()));
+	if(@dateToType = 0)
+		set @dateTo = CONVERT(DATE, DATEADD(DAY, CONVERT(INT, @dateTo), GETDATE()));
 
 	 --OrderTotal = 1,
 	 --OrderCount = 2,
@@ -1338,6 +1364,7 @@ BEGIN
 		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, SUM(CD_TOTAL) AS RESULT
 		FROM ORDERS
 		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE between @dateFrom and @dateTo
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
 		ORDER BY WeekNumber;
 
@@ -1345,6 +1372,7 @@ BEGIN
 		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(*) AS RESULT
 		FROM ORDERS
 		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE between @dateFrom and @dateTo
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
 		ORDER BY WeekNumber;
 
@@ -1352,6 +1380,7 @@ BEGIN
 		SELECT DATEPART(ISO_WEEK, DT_DATE_IN) AS WeekNumber, SUM(DEC_TOTAL) AS RESULT
 		FROM HOTEL_ORDERS
 		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE_IN between @dateFrom and @dateTo
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN)
 		ORDER BY WeekNumber;
 
@@ -1359,6 +1388,7 @@ BEGIN
 		SELECT DATEPART(ISO_WEEK, DT_DATE_IN) AS WeekNumber, count(*) AS RESULT
 		FROM HOTEL_ORDERS
 		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE_IN between @dateFrom and @dateTo
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN)
 		ORDER BY WeekNumber;
 
@@ -1368,6 +1398,7 @@ BEGIN
 			SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, SUM(CD_TOTAL) AS RESULT, CD_WAITER_ID
 			FROM ORDERS
 			WHERE CD_STORE_ID = @storeID
+			AND DT_DATE between @dateFrom and @dateTo
 			GROUP BY DATEPART(ISO_WEEK, DT_DATE), CD_WAITER_ID
 		) x
 		JOIN [USERS] u ON u.KY_USER_ID = x.CD_WAITER_ID
@@ -1379,6 +1410,7 @@ BEGIN
 			SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(*) AS RESULT, CD_WAITER_ID
 			FROM ORDERS
 			WHERE CD_STORE_ID = @storeID
+			AND DT_DATE between @dateFrom and @dateTo
 			GROUP BY DATEPART(ISO_WEEK, DT_DATE), CD_WAITER_ID
 		) x
 		JOIN [USERS] u ON u.KY_USER_ID = x.CD_WAITER_ID
@@ -1388,6 +1420,7 @@ BEGIN
 		SELECT DATEPART(ISO_WEEK, DT_DATE) AS Fecha, COUNT(*) AS [N. Clientes]
 		FROM CUSTOMERS
 		WHERE CD_STORE_ID = @storeID
+		AND DT_DATE between @dateFrom and @dateTo
 		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
 		ORDER BY Fecha;
 
@@ -1400,7 +1433,7 @@ BEGIN
 					JSON_VALUE(product.value, '$.price') AS ProductPrice,
 					JSON_VALUE(product.value, '$.quantity') AS ProductQuantity,
 					DT_DATE
-				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID) p
+				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID AND DT_DATE between @dateFrom and @dateTo) p
 				CROSS APPLY 
 					OPENJSON(p.JS_PRODUCTS) AS product
 			),
@@ -1424,7 +1457,7 @@ BEGIN
 					JSON_VALUE(product.value, '$.price') AS ProductPrice,
 					JSON_VALUE(product.value, '$.quantity') AS ProductQuantity,
 					DT_DATE
-				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID) p
+				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID AND DT_DATE between @dateFrom and @dateTo) p
 				CROSS APPLY 
 					OPENJSON(p.JS_PRODUCTS) AS product
 			),
@@ -1451,7 +1484,7 @@ BEGIN
 				SELECT 
 					JSON_VALUE(JS_CUSTOMER, '$.id') AS CustomerId,
 					DT_DATE
-				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID) p
+				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID AND DT_DATE between @dateFrom and @dateTo) p
 			),
 			cte2 as (
 				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(CustomerId) AS Result
@@ -1472,7 +1505,7 @@ BEGIN
 					JSON_VALUE(product.value, '$.price') AS ProductPrice,
 					JSON_VALUE(product.value, '$.quantity') AS ProductQuantity,
 					DT_DATE
-				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID) p
+				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID AND DT_DATE between @dateFrom and @dateTo) p
 				CROSS APPLY 
 					OPENJSON(p.JS_PRODUCTS) AS product
 			),
