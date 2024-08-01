@@ -1361,45 +1361,45 @@ BEGIN
 	 --OtherProductCount = 11
 
 	IF @infoType = 1
-		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, SUM(CD_TOTAL) AS RESULT
+		SELECT FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS FECHA, SUM(CD_TOTAL) AS RESULT
 		FROM ORDERS
 		WHERE CD_STORE_ID = @storeID
 		AND DT_DATE between @dateFrom and @dateTo
-		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
-		ORDER BY WeekNumber;
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE)
+		ORDER BY FECHA;
 
 	ELSE IF @infoType = 2
-		SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(*) AS RESULT
+		SELECT FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS FECHA, COUNT(*) AS RESULT
 		FROM ORDERS
 		WHERE CD_STORE_ID = @storeID
 		AND DT_DATE between @dateFrom and @dateTo
-		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
-		ORDER BY WeekNumber;
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE)
+		ORDER BY FECHA;
 
 	ELSE IF @infoType = 3
-		SELECT DATEPART(ISO_WEEK, DT_DATE_IN) AS WeekNumber, SUM(DEC_TOTAL) AS RESULT
+		SELECT FORMAT(MIN(DT_DATE_IN), 'yyyy-MM-dd') AS FECHA, SUM(DEC_TOTAL) AS RESULT
 		FROM HOTEL_ORDERS
 		WHERE CD_STORE_ID = @storeID
 		AND DT_DATE_IN between @dateFrom and @dateTo
-		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN)
-		ORDER BY WeekNumber;
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN), YEAR(DT_DATE_IN), DATEPART(ISO_WEEK, DT_DATE_IN)
+		ORDER BY FECHA;
 
 	ELSE IF @infoType = 4
-		SELECT DATEPART(ISO_WEEK, DT_DATE_IN) AS WeekNumber, count(*) AS RESULT
+		SELECT FORMAT(MIN(DT_DATE_IN), 'yyyy-MM-dd') AS FECHA, count(*) AS RESULT
 		FROM HOTEL_ORDERS
 		WHERE CD_STORE_ID = @storeID
 		AND DT_DATE_IN between @dateFrom and @dateTo
-		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN)
-		ORDER BY WeekNumber;
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE_IN), YEAR(DT_DATE_IN), DATEPART(ISO_WEEK, DT_DATE_IN)
+		ORDER BY FECHA;
 
 	ELSE IF @infoType = 5
 		select x.WeekNumber as Fecha, x.RESULT as Venta, u.TX_NAME as Mesero
 		from (
-			SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, SUM(CD_TOTAL) AS RESULT, CD_WAITER_ID
+			SELECT FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS WeekNumber, SUM(CD_TOTAL) AS RESULT, CD_WAITER_ID
 			FROM ORDERS
 			WHERE CD_STORE_ID = @storeID
 			AND DT_DATE between @dateFrom and @dateTo
-			GROUP BY DATEPART(ISO_WEEK, DT_DATE), CD_WAITER_ID
+			GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE), CD_WAITER_ID
 		) x
 		JOIN [USERS] u ON u.KY_USER_ID = x.CD_WAITER_ID
 		order by x.WeekNumber;
@@ -1407,21 +1407,21 @@ BEGIN
 	ELSE IF @infoType = 6
 		select x.WeekNumber as Fecha, x.RESULT as [N. Ordenes], u.TX_NAME as Mesero
 		from (
-			SELECT DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(*) AS RESULT, CD_WAITER_ID
+			SELECT FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS WeekNumber, COUNT(*) AS RESULT, CD_WAITER_ID
 			FROM ORDERS
 			WHERE CD_STORE_ID = @storeID
 			AND DT_DATE between @dateFrom and @dateTo
-			GROUP BY DATEPART(ISO_WEEK, DT_DATE), CD_WAITER_ID
+			GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE), CD_WAITER_ID
 		) x
 		JOIN [USERS] u ON u.KY_USER_ID = x.CD_WAITER_ID
 		order by x.WeekNumber;
 
 	ELSE IF @infoType = 7
-		SELECT DATEPART(ISO_WEEK, DT_DATE) AS Fecha, COUNT(*) AS [N. Clientes]
+		SELECT FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS Fecha, COUNT(*) AS [N. Clientes]
 		FROM CUSTOMERS
 		WHERE CD_STORE_ID = @storeID
 		AND DT_DATE between @dateFrom and @dateTo
-		GROUP BY DATEPART(ISO_WEEK, DT_DATE)
+		GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE)
 		ORDER BY Fecha;
 
 	ELSE IF @infoType = 8
@@ -1438,9 +1438,9 @@ BEGIN
 					OPENJSON(p.JS_PRODUCTS) AS product
 			),
 			cte2 as (
-				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(ProductId) AS Result, ProductId
+				select FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS WeekNumber, COUNT(ProductId) AS Result, ProductId
 				from cte
-				GROUP BY DATEPART(ISO_WEEK, DT_DATE), ProductId
+				GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE), ProductId
 			)
 			select cte2.WeekNumber, cte2.Result, p.TX_NAME as Product
 			from cte2
@@ -1462,9 +1462,9 @@ BEGIN
 					OPENJSON(p.JS_PRODUCTS) AS product
 			),
 			cte2 as (
-				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(ProductId) AS Result, ProductId
+				select FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS WeekNumber, COUNT(ProductId) AS Result, ProductId
 				from cte
-				GROUP BY DATEPART(ISO_WEEK, DT_DATE), ProductId
+				GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE), ProductId
 			),
 			cte3 as (
 				select cte2.WeekNumber, SUM(cte2.Result) as Result, p.CD_CATEGORY_ID
@@ -1487,9 +1487,9 @@ BEGIN
 				FROM (SELECT * FROM [ORDERS] WHERE CD_STORE_ID = @storeID AND DT_DATE between @dateFrom and @dateTo) p
 			),
 			cte2 as (
-				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(CustomerId) AS Result
+				select FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS WeekNumber, COUNT(CustomerId) AS Result
 				from cte
-				GROUP BY DATEPART(ISO_WEEK, DT_DATE), CustomerId
+				GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE), CustomerId
 			)
 			select * 
 			from cte2
@@ -1510,10 +1510,10 @@ BEGIN
 					OPENJSON(p.JS_PRODUCTS) AS product
 			),
 			cte2 as (
-				select DATEPART(ISO_WEEK, DT_DATE) AS WeekNumber, COUNT(ProductId) AS Result, ProductId
+				select FORMAT(MIN(DT_DATE), 'yyyy-MM-dd') AS WeekNumber, COUNT(ProductId) AS Result, ProductId
 				from cte
 				where ProductId = 0
-				GROUP BY DATEPART(ISO_WEEK, DT_DATE), ProductId
+				GROUP BY DATEPART(ISO_WEEK, DT_DATE), YEAR(DT_DATE), DATEPART(ISO_WEEK, DT_DATE), ProductId
 			)
 			select cte2.WeekNumber, cte2.Result, 'Otro producto' as Product 
 			from cte2
