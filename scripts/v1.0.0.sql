@@ -378,6 +378,19 @@ VALUES
     (1, 'Widget Title 2', '$', 0, 1, 1, '2024-07-01', '2024-07-30', 1, 1, 2, 50, 100, '#00FF00'),
     (1, 'Widget Title 3', '%', 1, 1, 1, '2024-07-01', '2024-07-30', 1, 1, 3, 50, 100, '#0000FF');
 
+
+GO
+
+CREATE TABLE PRINTERS (
+    KY_PRINTER_ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+    TX_NAME NVARCHAR(max) NOT NULL,
+	TX_IP NVARCHAR(max) NOT NULL,
+	CD_IS_PRINCIPAL BIT NOT NULL,
+    CD_STORE_ID INT NOT NULL,
+    FOREIGN KEY (CD_STORE_ID) REFERENCES STORES(KY_STORE_ID)
+);
+GO
+
 --SP
 
 GO
@@ -1571,4 +1584,76 @@ BEGIN
     FROM WIDGET_INFO_TYPES;
 END;
 
+GO
+
+CREATE OR ALTER PROCEDURE GetPrinters
+    @storeID INT
+AS
+BEGIN
+    SELECT *
+    FROM PRINTERS
+    WHERE CD_STORE_ID = @storeID;
+END;
+
+GO
+
+
+CREATE OR ALTER PROCEDURE RemovePrinter
+    @printerID INT
+AS
+BEGIN
+    DELETE FROM PRINTERS
+    WHERE KY_PRINTER_ID = @printerID;
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        RETURN 1;
+    END
+    ELSE
+    BEGIN
+        RETURN 0;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE AddOrUpdatePrinter
+    @printerID INT,
+    @name NVARCHAR(MAX),
+    @ip NVARCHAR(MAX),
+	@isPrincipal BIT,
+    @storeId INT
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM PRINTERS WHERE KY_PRINTER_ID = @printerID)
+    BEGIN
+        UPDATE PRINTERS
+        SET 
+			TX_NAME = @name,
+			TX_IP = @ip,
+			CD_IS_PRINCIPAL = @isPrincipal
+        WHERE KY_PRINTER_ID = @printerID;
+
+		IF @@ROWCOUNT > 0
+            SELECT 1 as RESULT;
+        ELSE
+            SELECT 0 as RESULT;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO PRINTERS (
+            TX_NAME, 
+            TX_IP, 
+            CD_IS_PRINCIPAL,
+            CD_STORE_ID
+        )
+        VALUES (
+            @name, 
+            @ip, 
+            @isPrincipal,
+            @storeId
+        );
+
+		SELECT SCOPE_IDENTITY() as RESULT;
+    END
+END;
 GO
