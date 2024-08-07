@@ -387,6 +387,8 @@ CREATE TABLE PRINTERS (
 	TX_IP NVARCHAR(max) NOT NULL,
 	CD_IS_PRINCIPAL BIT NOT NULL,
     CD_STORE_ID INT NOT NULL,
+	TX_MESSAGE_INI TEXT,
+	TX_MESSAGE_FIN TEXT,
     FOREIGN KEY (CD_STORE_ID) REFERENCES STORES(KY_STORE_ID)
 );
 GO
@@ -1621,6 +1623,8 @@ CREATE OR ALTER PROCEDURE AddOrUpdatePrinter
     @name NVARCHAR(MAX),
     @ip NVARCHAR(MAX),
 	@isPrincipal BIT,
+	@messageIni TEXT,
+	@messageFin TEXT,
     @storeId INT
 AS
 BEGIN
@@ -1630,7 +1634,9 @@ BEGIN
         SET 
 			TX_NAME = @name,
 			TX_IP = @ip,
-			CD_IS_PRINCIPAL = @isPrincipal
+			CD_IS_PRINCIPAL = @isPrincipal,
+			TX_MESSAGE_INI = @messageIni,
+			TX_MESSAGE_FIN = @messageFin
         WHERE KY_PRINTER_ID = @printerID;
 
 		IF @@ROWCOUNT > 0
@@ -1644,12 +1650,16 @@ BEGIN
             TX_NAME, 
             TX_IP, 
             CD_IS_PRINCIPAL,
+			TX_MESSAGE_INI,
+			TX_MESSAGE_FIN,
             CD_STORE_ID
         )
         VALUES (
             @name, 
             @ip, 
             @isPrincipal,
+			@messageIni,
+			@messageFin,
             @storeId
         );
 
