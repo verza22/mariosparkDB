@@ -261,17 +261,20 @@ CREATE TABLE HOTEL_ROOMS (
     INT_CAPACITY INT NOT NULL,
     CD_ROOM_TYPE_ID INT NOT NULL,
     CD_STORE_ID INT NOT NULL,
+	DEC_PRICE_BABIES DECIMAL(10, 2) NOT NULL,
+	DEC_PRICE_CHILDREN DECIMAL(10, 2) NOT NULL,
+	DEC_PRICE_ADULTS DECIMAL(10, 2) NOT NULL,
 	FOREIGN KEY (CD_ROOM_TYPE_ID) REFERENCES HOTEL_ROOM_TYPES(KY_ROOM_TYPE_ID),
     FOREIGN KEY (CD_STORE_ID) REFERENCES STORES(KY_STORE_ID)
 );
 GO
 
 -- Insertar datos en la tabla "HOTEL_ROOMS"
-INSERT INTO HOTEL_ROOMS (TX_ROOM_NAME, INT_CAPACITY, CD_ROOM_TYPE_ID, CD_STORE_ID)
+INSERT INTO HOTEL_ROOMS (TX_ROOM_NAME, INT_CAPACITY, CD_ROOM_TYPE_ID, CD_STORE_ID, DEC_PRICE_BABIES, DEC_PRICE_CHILDREN, DEC_PRICE_ADULTS)
 VALUES 
-('1', 4, 2, 1),
-('2', 5, 1, 1),
-('3', 6, 3, 1);
+('1', 4, 2, 1, 5, 10 ,15),
+('2', 5, 1, 1, 5, 10 ,15),
+('3', 6, 3, 1, 5, 10 ,15);
 GO
 
 
@@ -547,12 +550,7 @@ CREATE OR ALTER PROCEDURE GetHotelRooms
     @store_id INT
 AS
 BEGIN
-    SELECT 
-        KY_ROOM_ID,
-        TX_ROOM_NAME,
-        INT_CAPACITY,
-        CD_ROOM_TYPE_ID,
-        CD_STORE_ID
+    SELECT *
     FROM 
         HOTEL_ROOMS
     WHERE 
@@ -921,7 +919,10 @@ CREATE OR ALTER PROCEDURE AddOrUpdateHotelRoom
     @roomName NVARCHAR(50),
     @capacity INT,
     @roomTypeId INT,
-    @storeId INT
+    @storeId INT,
+	@priceBabies DEC,
+	@priceChildren DEC,
+	@priceAdults DEC
 AS
 BEGIN
     IF EXISTS (SELECT 1 FROM HOTEL_ROOMS WHERE KY_ROOM_ID = @roomId)
@@ -931,7 +932,10 @@ BEGIN
             TX_ROOM_NAME = @roomName,
             INT_CAPACITY = @capacity,
             CD_ROOM_TYPE_ID = @roomTypeId,
-            CD_STORE_ID = @storeId
+            CD_STORE_ID = @storeId,
+			DEC_PRICE_BABIES = @priceBabies,
+			DEC_PRICE_CHILDREN = @priceChildren,
+			DEC_PRICE_ADULTS = @priceAdults
         WHERE KY_ROOM_ID = @roomId;
 
 		IF @@ROWCOUNT > 0
@@ -941,8 +945,8 @@ BEGIN
     END
     ELSE
     BEGIN
-        INSERT INTO HOTEL_ROOMS (TX_ROOM_NAME, INT_CAPACITY, CD_ROOM_TYPE_ID, CD_STORE_ID)
-        VALUES (@roomName, @capacity, @roomTypeId, @storeId);
+        INSERT INTO HOTEL_ROOMS (TX_ROOM_NAME, INT_CAPACITY, CD_ROOM_TYPE_ID, CD_STORE_ID, DEC_PRICE_BABIES, DEC_PRICE_CHILDREN, DEC_PRICE_ADULTS)
+        VALUES (@roomName, @capacity, @roomTypeId, @storeId, @priceBabies, @priceChildren, @priceAdults);
 
 		SELECT SCOPE_IDENTITY() as RESULT;
     END
