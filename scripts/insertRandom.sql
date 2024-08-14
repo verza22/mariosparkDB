@@ -66,7 +66,7 @@ END;
 GO
 
 DECLARE @startDate DATE = '2024-05-01';
-DECLARE @endDate DATE = '2024-07-14';
+DECLARE @endDate DATE = '2024-08-14';
 DECLARE @numRecords INT = 10;
 
 -- Variables para el bucle
@@ -80,6 +80,9 @@ DECLARE @int_people INT;
 DECLARE @js_room NVARCHAR(MAX);
 DECLARE @js_customer NVARCHAR(MAX);
 DECLARE @cd_store_id INT;
+DECLARE @cd_cant_babies INT;
+DECLARE @cd_cant_children INT;
+DECLARE @cd_cant_adult INT;
 
 WHILE @i < @numRecords
 BEGIN
@@ -91,6 +94,9 @@ BEGIN
 
     -- Generar datos aleatorios
     SET @cd_user_id = ABS(CHECKSUM(NEWID())) % 10 + 1; -- IDs entre 1 y 10
+	SET @cd_cant_babies = ABS(CHECKSUM(NEWID())) % 4 + 1; -- IDs entre 1 y 4
+	SET @cd_cant_children = ABS(CHECKSUM(NEWID())) % 4 + 1; -- IDs entre 1 y 4
+	SET @cd_cant_adult = ABS(CHECKSUM(NEWID())) % 4 + 1; -- IDs entre 1 y 4
     SET @dec_total = CAST(ABS(CHECKSUM(NEWID())) % 1000 + 100 AS DECIMAL(10, 2)); -- Total entre 100 y 1099
     SET @tx_payment_method = CASE ABS(CHECKSUM(NEWID())) % 3
                              WHEN 0 THEN 'Efectivo'
@@ -103,7 +109,10 @@ BEGIN
         "id": ' + CAST(@i + 1 AS NVARCHAR) + N',
         "name": "Room ' + CAST(@i + 1 AS NVARCHAR) + N'",
         "type": ' + CAST((ABS(CHECKSUM(NEWID())) % 3 + 1) AS NVARCHAR) + N',
-        "capacity": ' + CAST((ABS(CHECKSUM(NEWID())) % 4 + 1) AS NVARCHAR) + N'
+        "capacity": ' + CAST((ABS(CHECKSUM(NEWID())) % 4 + 1) AS NVARCHAR) + N',
+		"priceBabies": ' + CAST((ABS(CHECKSUM(NEWID())) % 4 + 1) AS NVARCHAR) + N',
+		"priceChildren": ' + CAST((ABS(CHECKSUM(NEWID())) % 4 + 1) AS NVARCHAR) + N',
+		"priceAdult": ' + CAST((ABS(CHECKSUM(NEWID())) % 4 + 1) AS NVARCHAR) + N'
     }';
     SET @js_customer = N'{
         "id": ' + CAST(@i + 1 AS NVARCHAR) + N',
@@ -115,8 +124,8 @@ BEGIN
     }';
 
     -- Insertar registro
-    INSERT INTO HOTEL_ORDERS (CD_USER_ID, DEC_TOTAL, DT_DATE_IN, DT_DATE_OUT, TX_PAYMENT_METHOD, INT_PEOPLE, JS_ROOM, JS_CUSTOMER, CD_STORE_ID)
-    VALUES (@cd_user_id, @dec_total, @dateIn, @dateOut, @tx_payment_method, @int_people, @js_room, @js_customer, @cd_store_id);
+    INSERT INTO HOTEL_ORDERS (CD_USER_ID, DEC_TOTAL, CD_CANT_BABIES, CD_CANT_CHILDREN, CD_CANT_ADULT, DT_DATE_IN, DT_DATE_OUT, TX_PAYMENT_METHOD, INT_PEOPLE, JS_ROOM, JS_CUSTOMER, CD_STORE_ID)
+    VALUES (@cd_user_id, @dec_total, @cd_cant_babies, @cd_cant_children, @cd_cant_adult, @dateIn, @dateOut, @tx_payment_method, @int_people, @js_room, @js_customer, @cd_store_id);
 
     -- Incrementar contador
     SET @i = @i + 1;

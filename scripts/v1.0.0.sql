@@ -283,6 +283,9 @@ CREATE TABLE HOTEL_ORDERS (
     KY_ORDER_ID INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
     CD_USER_ID INT NOT NULL,
     DEC_TOTAL DECIMAL(10, 2) NOT NULL,
+	CD_CANT_BABIES INT NOT NULL,
+	CD_CANT_CHILDREN INT NOT NULL,
+	CD_CANT_ADULT INT NOT NULL,
     DT_DATE_IN DATETIME NOT NULL,
     DT_DATE_OUT DATETIME NOT NULL,
     TX_PAYMENT_METHOD NVARCHAR(50),
@@ -295,14 +298,17 @@ CREATE TABLE HOTEL_ORDERS (
 GO
 
 -- Insertar datos en la tabla "HOTEL_ORDERS"
-INSERT INTO HOTEL_ORDERS (CD_USER_ID, DEC_TOTAL, DT_DATE_IN, DT_DATE_OUT, TX_PAYMENT_METHOD, INT_PEOPLE, JS_ROOM, JS_CUSTOMER, CD_STORE_ID)
+INSERT INTO HOTEL_ORDERS (CD_USER_ID, DEC_TOTAL, CD_CANT_BABIES, CD_CANT_CHILDREN, CD_CANT_ADULT, DT_DATE_IN, DT_DATE_OUT, TX_PAYMENT_METHOD, INT_PEOPLE, JS_ROOM, JS_CUSTOMER, CD_STORE_ID)
 VALUES 
-(2, 20, '2023-01-01 00:00:00', '2023-01-03 00:00:00', 'Efectivo', 6, 
+(2, 20, 2, 2, 2, '2023-01-01 00:00:00', '2023-01-03 00:00:00', 'Efectivo', 6, 
 '{
     "id": 1,
     "name": "1",
     "type": 2,
-    "capacity": 4
+    "capacity": 4,
+	"priceBabies": 10,
+	"priceChildren": 15,
+	"priceAdult": 20
 }', 
 '{
     "id": 1,
@@ -563,18 +569,8 @@ CREATE OR ALTER PROCEDURE GetHotelOrders
     @store_id INT
 AS
 BEGIN
-    SELECT 
-        KY_ORDER_ID,
-        CD_USER_ID,
-        DEC_TOTAL,
-        DT_DATE_IN,
-        DT_DATE_OUT,
-        TX_PAYMENT_METHOD,
-        INT_PEOPLE,
-        JS_ROOM,
-        JS_CUSTOMER,
-        CD_STORE_ID
-    FROM 
+    SELECT *
+	FROM 
         HOTEL_ORDERS
     WHERE 
         CD_STORE_ID = @store_id;
@@ -1046,7 +1042,10 @@ CREATE OR ALTER PROCEDURE AddOrUpdateHotelOrder
     @people INT,
     @room NVARCHAR(MAX),
     @customer NVARCHAR(MAX),
-    @storeId INT
+    @storeId INT,
+	@cantBabies INT,
+	@cantChildren INT,
+	@cantAdult INT
 AS
 BEGIN
     IF EXISTS (SELECT 1 FROM HOTEL_ORDERS WHERE KY_ORDER_ID = @orderId)
@@ -1061,7 +1060,10 @@ BEGIN
             INT_PEOPLE = @people,
             JS_ROOM = @room,
             JS_CUSTOMER = @customer,
-            CD_STORE_ID = @storeId
+            CD_STORE_ID = @storeId,
+			CD_CANT_BABIES = @cantBabies,
+			CD_CANT_CHILDREN = @cantChildren,
+			CD_CANT_ADULT = @cantAdult
         WHERE KY_ORDER_ID = @orderId;
 
 		IF @@ROWCOUNT > 0
@@ -1080,7 +1082,10 @@ BEGIN
             INT_PEOPLE, 
             JS_ROOM, 
             JS_CUSTOMER, 
-            CD_STORE_ID
+            CD_STORE_ID,
+			CD_CANT_BABIES,
+			CD_CANT_CHILDREN,
+			CD_CANT_ADULT
         )
         VALUES (
             @userId, 
@@ -1091,7 +1096,10 @@ BEGIN
             @people, 
             @room, 
             @customer, 
-            @storeId
+            @storeId,
+			@cantBabies,
+			@cantChildren,
+			@cantAdult
         );
 
 		SELECT SCOPE_IDENTITY() as RESULT;
