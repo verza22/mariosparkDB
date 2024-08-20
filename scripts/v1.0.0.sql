@@ -264,6 +264,8 @@ CREATE TABLE HOTEL_ROOMS (
 	DEC_PRICE_BABIES DECIMAL(10, 2) NOT NULL,
 	DEC_PRICE_CHILDREN DECIMAL(10, 2) NOT NULL,
 	DEC_PRICE_ADULTS DECIMAL(10, 2) NOT NULL,
+	TX_IMAGE TEXT,
+	TX_DESCRIPTION TEXT,
 	FOREIGN KEY (CD_ROOM_TYPE_ID) REFERENCES HOTEL_ROOM_TYPES(KY_ROOM_TYPE_ID),
     FOREIGN KEY (CD_STORE_ID) REFERENCES STORES(KY_STORE_ID)
 );
@@ -561,6 +563,19 @@ BEGIN
         HOTEL_ROOMS
     WHERE 
         CD_STORE_ID = @store_id;
+END;
+
+GO
+
+CREATE OR ALTER PROCEDURE GetHotelRoom
+    @id INT
+AS
+BEGIN
+    SELECT *
+    FROM 
+        HOTEL_ROOMS
+    WHERE 
+        KY_ROOM_ID = @id;
 END;
 
 GO
@@ -918,7 +933,9 @@ CREATE OR ALTER PROCEDURE AddOrUpdateHotelRoom
     @storeId INT,
 	@priceBabies DEC,
 	@priceChildren DEC,
-	@priceAdults DEC
+	@priceAdults DEC,
+	@image TEXT,
+	@description TEXT
 AS
 BEGIN
     IF EXISTS (SELECT 1 FROM HOTEL_ROOMS WHERE KY_ROOM_ID = @roomId)
@@ -931,7 +948,9 @@ BEGIN
             CD_STORE_ID = @storeId,
 			DEC_PRICE_BABIES = @priceBabies,
 			DEC_PRICE_CHILDREN = @priceChildren,
-			DEC_PRICE_ADULTS = @priceAdults
+			DEC_PRICE_ADULTS = @priceAdults,
+			TX_IMAGE = @image,
+			TX_DESCRIPTION = @description
         WHERE KY_ROOM_ID = @roomId;
 
 		IF @@ROWCOUNT > 0
@@ -941,8 +960,8 @@ BEGIN
     END
     ELSE
     BEGIN
-        INSERT INTO HOTEL_ROOMS (TX_ROOM_NAME, INT_CAPACITY, CD_ROOM_TYPE_ID, CD_STORE_ID, DEC_PRICE_BABIES, DEC_PRICE_CHILDREN, DEC_PRICE_ADULTS)
-        VALUES (@roomName, @capacity, @roomTypeId, @storeId, @priceBabies, @priceChildren, @priceAdults);
+        INSERT INTO HOTEL_ROOMS (TX_ROOM_NAME, INT_CAPACITY, CD_ROOM_TYPE_ID, CD_STORE_ID, DEC_PRICE_BABIES, DEC_PRICE_CHILDREN, DEC_PRICE_ADULTS, TX_IMAGE, TX_DESCRIPTION)
+        VALUES (@roomName, @capacity, @roomTypeId, @storeId, @priceBabies, @priceChildren, @priceAdults, @image, @description);
 
 		SELECT SCOPE_IDENTITY() as RESULT;
     END
